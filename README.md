@@ -1,7 +1,7 @@
 # Inteligencia Artificial - Facultad Regional Villa María
----
 
-Repositorio oficial de la cátedra Inteligencia Artificial, dictada en 5° año de la carrera Ingeniería en Sistemas de Información. La misma se dicta en la Facultad Regional Villa María, Universidad Tecnológica Nacional.
+
+Repositorio oficial de la cátedra Inteligencia Artificial, perteneciente al 5° nivel de la carrera Ingeniería en Sistemas de Información. La misma se dicta en la Facultad Regional Villa María, de la Universidad Tecnológica Nacional (Villa María, Argentina).
 
 En el presente repositorio se alojan las clases teóricas y prácticas dictadas durante el cuatrimestre, junto a las respectivas consignas de los trabajos prácticos. Dichas clases se distribuyen de acuerdo a las siguientes unidades:
 

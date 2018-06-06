@@ -2,12 +2,14 @@ import gym
 import six
 import numpy as np
 import pandas as pd
-from cart_pole_tabular_agent.QLearn import QLearn
+from cart_pole_tabular_agent.QLearning import QLearning
 from functools import reduce
 
 """
 Module adapted from Victor Mayoral Vilches <victor@erlerobotics.com>
 """
+
+# functions that split the state -------------------------------------------
 
 
 def build_state(features):
@@ -17,6 +19,8 @@ def build_state(features):
 def to_bin(value, bins):
     return np.digitize(x=[value], bins=bins)[0]
 
+#  -------------------------------------------------------------------------
+
 
 class CartPoleTabularAgent(object):
 
@@ -24,11 +28,12 @@ class CartPoleTabularAgent(object):
 
         # basic configuration
         self._environment_name = "CartPole-v0"
-        self._environment_instance = None
+        self._environment_instance = None  # (note that the "None" variables have values yet to be assigned)
         self._random_state = None
         self._cutoff_time = None
         self._hyper_parameters = None
 
+        # number of features in the state
         self._number_of_features = None
 
         # list that contains the amount of time-steps the cart had the pole up during the episode. It is used as a way
@@ -38,15 +43,18 @@ class CartPoleTabularAgent(object):
         # whether ot not to display a video of the agent execution at each episode
         self.display_video = True
 
-        # attributes that controls the state space reduction
+        # attributes that controls the state space reduction. For example, 8 bins over a state feature means that the
+        # feature is divided in 8 parts, where all of them share the same size.
         self.n_bins = 8
         self.n_bins_angle = 10
+
+        # attribute initialization
         self._cart_position_bins = None
         self._pole_angle_bins = None
         self._cart_velocity_bins = None
         self._angle_rate_bins = None
 
-        # the Q-learn algorithm
+        # the Q-learning algorithm
         self._q_learning = None
 
         # default hyper-parameters
@@ -55,23 +63,29 @@ class CartPoleTabularAgent(object):
         self._epsilon = 0.1
         self.episodes_to_run = 3000  # amount of episodes to run for each run of the agent
 
-        # measure function
-        self._measure_function = None
-
-        # the initial state, saved only for the function get_q_values_for_initial_state
-        self._initial_state = None
-
         # matrix with 3 columns, where each row represents the action, reward and next state obtained from the agent
         # executing an action in the previous state
         self.action_reward_state_trace = []
 
     def set_random_state(self, random_state):
+        """
+        Method that sets a previously created numpy.RandomState object in order to share the same random seed.
+        :param random_state: an instantiated np.RandomState object
+        """
         self._random_state = random_state
 
     def set_cutoff_time(self, cutoff_time):
+        """
+        Method that sets a maximum number of time-steps for each agent episode.
+        :param cutoff_time:
+        """
         self._cutoff_time = cutoff_time
 
     def set_hyper_parameters(self, hyper_parameters):
+        """
+        Method that passes the hyper_parameter configuration vector to the RL agent.
+        :param hyper_parameters: a list containing the hyper-parameters that are to be set in the RL algorithm.
+        """
         self._hyper_parameters = hyper_parameters
 
         for key, value in six.iteritems(hyper_parameters):
@@ -85,8 +99,12 @@ class CartPoleTabularAgent(object):
                 self._epsilon = value
 
     def init_agent(self):
+        """
+        Initializes the reinforcement learning agent with a default configuration.
+        """
         self._environment_instance = gym.make(self._environment_name)
 
+        # environment is seeded
         if self._random_state is not None:
             self._environment_instance.seed(self._random_state.randint(0, 1e10))
 
@@ -96,6 +114,7 @@ class CartPoleTabularAgent(object):
                                                               '/tmp/cartpole-experiment-1',
                                                               force=True)
 
+        # the number of features is obtained
         self._number_of_features = self._environment_instance.observation_space.shape[0]
 
         # Number of states is huge so in order to simplify the situation
@@ -106,6 +125,10 @@ class CartPoleTabularAgent(object):
         self._angle_rate_bins = pd.cut([-3.5, 3.5], bins=self.n_bins_angle, retbins=True)[1][1:-1]
 
     def restart_agent_learning(self):
+        """
+        Restarts the reinforcement learning agent so it starts learning from scratch, in order to avoid bias with
+        previous learning experience.
+        """
         # last run is cleared
         self._last_time_steps = []
         self.action_reward_state_trace = []
@@ -114,25 +137,18 @@ class CartPoleTabularAgent(object):
         del self._q_learning
 
         # a new Q-learning object is created to replace the previous object
-        self._q_learning = QLearn(actions=range(self._environment_instance.action_space.n),
-                                  alpha=self._alpha, gamma=self._gamma, epsilon=self._epsilon)
+        self._q_learning = QLearning(actions=range(self._environment_instance.action_space.n),
+                                     alpha=self._alpha, gamma=self._gamma, epsilon=self._epsilon)
 
-    def run(self, maximum_number_of_episodes):
-
+    def run(self):
+        """
+        Runs the reinforcement learning agent with a given configuration.
+        """
         for i_episode in range(self.episodes_to_run):
+            # an instance of an episode is run until it fails or until it reaches 200 time-steps
 
-            if self._initial_state is None:
-                # if no initial state has been observed, the initial state becomes a copy of the first observation
-                self._initial_state = np.copy(self._environment_instance.reset())
-
-                # the initial state is recorded as the initial observation
-                observation = self._initial_state
-            else:
-                # if an initial state has already been observed, the environment is reset but its internal state is
-                # set to be the first observation
-                _ = self._environment_instance.reset()
-                self._environment_instance.state = self._initial_state
-                observation = self._initial_state
+            # resets the environment, obtaining the first state observation
+            observation = self._environment_instance.reset()
 
             # the state is split into the different variables
             cart_position, pole_angle, cart_velocity, angle_rate_of_change = observation
@@ -144,7 +160,7 @@ class CartPoleTabularAgent(object):
             for t in range(self._cutoff_time):
 
                 # Pick an action based on the current state
-                action = self._q_learning.chooseAction(state)
+                action = self._q_learning.choose_action(state)
                 # Execute the action and get feedback
                 observation, reward, done, info = self._environment_instance.step(action)
 
@@ -174,33 +190,10 @@ class CartPoleTabularAgent(object):
         print("Best 100 score: {:0.2f}".format(reduce(lambda x, y: x + y,
                                                       last_time_steps_list[-100:]) / len(last_time_steps_list[-100:])))
 
-        # a single query to the objective function
-        single_f = self._measure_function.__call__()
-        return single_f
-
-    def get_q_values_for_initial_state(self):
-
-        q_values_initial_state = {}
-
-        cart_position, pole_angle, cart_velocity, angle_rate_of_change = self._initial_state
-        state = build_state([to_bin(cart_position, self._cart_position_bins),
-                             to_bin(pole_angle, self._pole_angle_bins),
-                             to_bin(cart_velocity, self._cart_velocity_bins),
-                             to_bin(angle_rate_of_change, self._angle_rate_bins)])
-
-        for action in range(self._environment_instance.action_space.n):
-            q_values_initial_state[action] = self._q_learning.getQ(state, action)
-
-        return q_values_initial_state
+        return self._last_time_steps.mean()
 
     def destroy_agent(self):
+        """
+        Destroys the reinforcement learning agent, in order to instantly release the memory the agent was using.
+        """
         self._environment_instance.close()
-
-
-# Measure functions ----------------------------------------------------------------------------------------------------
-
-    def calculate_f_episode_success_measure(self):
-        return np.mean(self._last_time_steps) >= 150
-
-    def calculate_f_steps_of_episode_measure(self):
-        return np.mean(self._last_time_steps)

@@ -199,7 +199,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32847896" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49905002" weight="0.32847896" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.49905002" visible="true" weight="0.39805827" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49905002" weight="0.39805827" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />

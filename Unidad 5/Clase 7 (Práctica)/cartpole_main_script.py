@@ -23,11 +23,6 @@ agent.set_hyper_parameters({"alpha": 0.5, "gamma": 0.9, "epsilon": 0.1})
 # para acelerar la velocidad del aprendizaje
 agent.display_video = True
 
-# variable que controla si se establece una semilla aleatoria
-seed_agent = True
-if seed_agent:
-    agent.set_random_state(random_state)
-
 # establece el tiempo de
 agent.set_cutoff_time(cutoff_time)
 

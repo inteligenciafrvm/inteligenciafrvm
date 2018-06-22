@@ -9,5 +9,9 @@
 #   git rm -r .ipynb_checkpoints/
 #
 
+### Pycharm Files ###
+.idea
+*/.idea/*
+
 # End of https://www.gitignore.io/api/jupyternotebook
 

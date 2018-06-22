@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import cart_pole_tabular_agent.CartPoleTabularAgent as cP
 

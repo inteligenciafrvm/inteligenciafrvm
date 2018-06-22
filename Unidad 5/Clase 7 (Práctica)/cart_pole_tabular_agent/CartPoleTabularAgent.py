@@ -152,6 +152,8 @@ class CartPoleTabularAgent(object):
 
             # the state is split into the different variables
             cart_position, pole_angle, cart_velocity, angle_rate_of_change = observation
+
+            # a number of four digits representing the actual state is obtained
             state = build_state([to_bin(cart_position, self._cart_position_bins),
                                  to_bin(pole_angle, self._pole_angle_bins),
                                  to_bin(cart_velocity, self._cart_velocity_bins),
@@ -169,6 +171,7 @@ class CartPoleTabularAgent(object):
 
                 # Digitize the observation to get a state
                 cart_position, pole_angle, cart_velocity, angle_rate_of_change = observation
+
                 next_state = build_state([to_bin(cart_position, self._cart_position_bins),
                                           to_bin(pole_angle, self._pole_angle_bins),
                                           to_bin(cart_velocity, self._cart_velocity_bins),

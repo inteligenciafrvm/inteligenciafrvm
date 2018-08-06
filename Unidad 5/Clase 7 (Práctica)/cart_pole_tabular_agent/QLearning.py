@@ -54,13 +54,7 @@ class QLearning:
         max_q = max(q)
 
         if random.random() < self.epsilon:
-            min_q = min(q)
-            max_min_q_distance = max(abs(min_q), abs(max_q))
-
-            # add random values to all the actions, recalculate max_q
-            q = [q[i] + random.random() * max_min_q_distance
-                 - .5 * max_min_q_distance for i in range(len(self.actions))]
-            max_q = max(q)
+            return random.choice(self.actions)  # a random action is returned
 
         count = q.count(max_q)
 

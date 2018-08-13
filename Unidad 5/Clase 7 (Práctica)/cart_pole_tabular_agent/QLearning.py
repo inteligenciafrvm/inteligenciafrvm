@@ -26,25 +26,17 @@ class QLearning:
         """
         return self.q.get((state, action), 0.0)
 
-    def learn(self, state1, action1, reward, state2):
+    def learn(self, state, action, reward, next_state):
         """
         Performs a Q-learning update for a given state transition
-        """
-        new_max_q = max([self.get_q(state2, a) for a in self.actions])
-        self.learn_q(state1, action1, reward, reward + self.gamma * new_max_q)
-
-    def learn_q(self, state, action, reward, value):
-        """
-        Internal method where the Q-learning update is performed
 
         Q-learning update:
-            Q(s, a) += alpha * (reward(s,a) + max(Q(s') - Q(s,a))
+        Q(s, a) += alpha * (reward(s,a) + max(Q(s') - Q(s,a))
         """
-        old_v = self.q.get((state, action), None)
-        if old_v is None:
-            self.q[(state, action)] = reward
-        else:
-            self.q[(state, action)] = old_v + self.alpha * (value - old_v)
+        new_max_q = max([self.get_q(next_state, a) for a in self.actions])
+        old_value = self.get_q(state, action)
+
+        self.q[(state, action)] = old_value + self.alpha * (reward + self.gamma * new_max_q - old_value)
 
     def choose_action(self, state, return_q=False):
         """

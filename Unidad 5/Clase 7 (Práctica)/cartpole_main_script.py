@@ -14,6 +14,8 @@ cutoff_time = 200
 # instanciamos nuestro agente
 agent = cP.CartPoleTabularAgent()
 
+agent.random_state = random_state
+
 # definimos sus híper-parámetros básicos
 # (también podrían establecerse los bins que hacen la división, modificando el método set_hyper_parameters)
 
@@ -21,7 +23,7 @@ agent.set_hyper_parameters({"alpha": 0.5, "gamma": 0.9, "epsilon": 0.1})
 
 # declaramos como True la variable de mostrar video, para ver en tiempo real cómo aprende el agente. Borrar esta línea
 # para acelerar la velocidad del aprendizaje
-agent.display_video = True
+agent.display_video = False
 
 # establece el tiempo de
 agent.set_cutoff_time(cutoff_time)

@@ -1,60 +1,29 @@
 import gym
 import six
 import numpy as np
-import pandas as pd
-from functools import reduce
-
-"""
-Module adapted from Victor Mayoral Vilches <victor@erlerobotics.com>
-"""
-
-# functions that split the state -------------------------------------------
+from gym.envs.registration import register
 
 
-def build_state(features):
-    return int("".join(map(lambda feature: str(int(feature)), features)))
-
-
-def to_bin(value, bins):
-    return np.digitize(x=[value], bins=bins)[0]
-
-#  -------------------------------------------------------------------------
-
-
-class CartPoleTabularAgent:
+class FrozenLakeAgent:
 
     def __init__(self):
 
         # basic configuration
-        self._environment_name = "CartPole-v0"
+        self._environment_name = "FrozenLake-v0"
         self._environment_instance = None  # (note that the "None" variables have values yet to be assigned)
         self.random_state = None  # type: np.random.RandomState
         self._cutoff_time = None
         self._hyper_parameters = None
 
-        # number of features in the state
-        self._number_of_features = None
-
-        # Dictionary of Q-values
-        self.q = {}
-
-        # list that contains the amount of time-steps the cart had the pole up during the episode. It is used as a way
-        # to score the performance of the agent. It has a maximum value of 200 time-steps
-        self._last_time_steps = None
-
         # whether ot not to display a video of the agent execution at each episode
         self.display_video = True
 
-        # attributes that controls the state space reduction. For example, 8 bins over a state feature means that the
-        # feature is divided in 8 parts, where all of them share the same size.
-        self.n_bins = 8
-        self.n_bins_angle = 10
+        # list that contains the amount of time-steps of the episode. It is used as a way to score the performance of
+        # the agent.
+        self.timesteps_of_episode = None
 
-        # attribute initialization
-        self._cart_position_bins = None
-        self._pole_angle_bins = None
-        self._cart_velocity_bins = None
-        self._angle_rate_bins = None
+        # list that contains the amount of reward given to the agent in each episode
+        self.reward_of_episode = None
 
         # Dictionary of Q-values
         self.q = {}
@@ -94,11 +63,37 @@ class CartPoleTabularAgent:
             if key == 'epsilon':
                 self._epsilon = value
 
-    def init_agent(self):
+    def restart_agent_learning(self):
+        """
+        Restarts the reinforcement learning agent so it starts learning from scratch, in order to avoid bias with
+        previous learning experience.
+        """
+        # last run is cleared
+        self.timesteps_of_episode = []
+        self.reward_of_episode = []
+        self.action_reward_state_trace = []
+
+        # q values are restarted
+        self.q = {}
+
+    def init_agent(self, is_slippery=False):
         """
         Initializes the reinforcement learning agent with a default configuration.
         """
-        self._environment_instance = gym.make(self._environment_name)
+
+        if is_slippery:
+            self._environment_instance = gym.make('FrozenLake-v0')
+        else:
+            # A Frozen Lake environment is registered with Slippery turned as False so it is deterministic
+            register(id='FrozenLakeNotSlippery-v0',
+                     entry_point='gym.envs.toy_text:FrozenLakeEnv',
+                     kwargs={'map_name': '4x4', 'is_slippery': False},
+                     max_episode_steps=100,
+                     reward_threshold=0.78)
+
+            self._environment_instance = gym.make('FrozenLakeNotSlippery-v0')
+
+        self.actions = range(self._environment_instance.action_space.n)
 
         # environment is seeded
         if self.random_state is None:
@@ -107,32 +102,8 @@ class CartPoleTabularAgent:
         if self.display_video:
             # video_callable=lambda count: count % 10 == 0)
             self._environment_instance = gym.wrappers.Monitor(self._environment_instance,
-                                                              '/tmp/cartpole-experiment-1',
+                                                              '/tmp/frozenlake-experiment-1',
                                                               force=True)
-
-        # the number of features is obtained
-        self._number_of_features = self._environment_instance.observation_space.shape[0]
-
-        # Number of states is huge so in order to simplify the situation
-        # we discretize the space to: 10 ** number_of_features
-        self._cart_position_bins = pd.cut([-2.4, 2.4], bins=self.n_bins, retbins=True)[1][1:-1]
-        self._pole_angle_bins = pd.cut([-2, 2], bins=self.n_bins_angle, retbins=True)[1][1:-1]
-        self._cart_velocity_bins = pd.cut([-1, 1], bins=self.n_bins, retbins=True)[1][1:-1]
-        self._angle_rate_bins = pd.cut([-3.5, 3.5], bins=self.n_bins_angle, retbins=True)[1][1:-1]
-
-        self.actions = range(self._environment_instance.action_space.n)
-
-    def restart_agent_learning(self):
-        """
-        Restarts the reinforcement learning agent so it starts learning from scratch, in order to avoid bias with
-        previous learning experience.
-        """
-        # last run is cleared
-        self._last_time_steps = []
-        self.action_reward_state_trace = []
-
-        # q values are restarted
-        self.q = {}
 
     def run(self):
         """
@@ -144,14 +115,8 @@ class CartPoleTabularAgent:
             # resets the environment, obtaining the first state observation
             observation = self._environment_instance.reset()
 
-            # the state is split into the different variables
-            cart_position, pole_angle, cart_velocity, angle_rate_of_change = observation
-
             # a number of four digits representing the actual state is obtained
-            state = build_state([to_bin(cart_position, self._cart_position_bins),
-                                 to_bin(pole_angle, self._pole_angle_bins),
-                                 to_bin(cart_velocity, self._cart_velocity_bins),
-                                 to_bin(angle_rate_of_change, self._angle_rate_bins)])
+            state = observation
 
             for t in range(self._cutoff_time):
 
@@ -164,30 +129,24 @@ class CartPoleTabularAgent:
                 self.action_reward_state_trace.append([action, reward, observation])
 
                 # Digitize the observation to get a state
-                cart_position, pole_angle, cart_velocity, angle_rate_of_change = observation
-
-                next_state = build_state([to_bin(cart_position, self._cart_position_bins),
-                                          to_bin(pole_angle, self._pole_angle_bins),
-                                          to_bin(cart_velocity, self._cart_velocity_bins),
-                                          to_bin(angle_rate_of_change, self._angle_rate_bins)])
+                next_state = observation
 
                 if not done:
                     self.learn(state, action, reward, next_state)
                     state = next_state
                 else:
-                    if t < self._cutoff_time - 1:  # tests whether the pole fell
-                        reward = -200  # the pole fell, so a negative reward is computed to avoid failure
+                    if reward == 0:  # episode finished because the agent fell into a hole
+
+                        # the default reward can be overrided by a hand-made reward (below) for example to punish the
+                        # agent for falling into a hole
+                        reward = 0  # replace this number to override the reward
+
                     self.learn(state, action, reward, next_state)
-                    self._last_time_steps = np.append(self._last_time_steps, [int(t + 1)])
+                    self.timesteps_of_episode = np.append(self.timesteps_of_episode, [int(t + 1)])
+                    self.reward_of_episode = np.append(self.reward_of_episode, reward)
                     break
 
-        last_time_steps_list = list(self._last_time_steps)
-        last_time_steps_list.sort()
-        print("Overall score: {:0.2f}".format(self._last_time_steps.mean()))
-        print("Best 100 score: {:0.2f}".format(reduce(lambda x, y: x + y,
-                                                      last_time_steps_list[-100:]) / len(last_time_steps_list[-100:])))
-
-        return self._last_time_steps.mean()
+        return self.reward_of_episode.mean()
 
     def choose_action(self, state):
         """

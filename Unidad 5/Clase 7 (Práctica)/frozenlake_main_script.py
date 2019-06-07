@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from frozen_lake_agent import FrozenLakeAgent as fP
 import itertools
 
-# definimos sus híper-parámetros básicos
+# definimos sus hiper-parametros basicos
 
 alpha = 0.5
 gamma = 0.9
@@ -28,7 +28,7 @@ agent.set_hyper_parameters({"alpha": alpha, "gamma": gamma, "epsilon": epsilon})
 
 agent.random_state = random_state
 
-# declaramos como True la variable de mostrar video, para ver en tiempo real cómo aprende el agente. Borrar esta línea
+# declaramos como True la variable de mostrar video, para ver en tiempo real como aprende el agente. Borrar esta linea
 # para acelerar la velocidad del aprendizaje
 agent.display_video = True
 
@@ -41,7 +41,7 @@ agent.init_agent(is_slippery=is_slippery)  # slippery es establecido en False po
 # reinicializa el conocimiento del agente
 agent.restart_agent_learning()
 
-# se realiza la ejecución del agente
+# se realiza la ejecucion del agente
 avg_steps_per_episode = agent.run()
 
 # se muestra la curva de convergencia de las recompensas
@@ -80,7 +80,7 @@ plt.show()
 
 # ---
 
-# se procede con los cálculos previos a la graficación de la matriz de valor
+# se procede con los calculos previos a la graficacion de la matriz de valor
 value_matrix = np.zeros((4, 4))
 for row in range(4):
     for column in range(4):
@@ -90,12 +90,12 @@ for row in range(4):
         for action in range(4):
             state_values.append(agent.q.get((row * 4 + column, action), 0))
 
-        maximum_value = max(state_values)  # como usamos epsilon-greedy, determinamos la acción que arroja máximo valor
-        state_values.remove(maximum_value)  # removemos el ítem asociado con la acción de máximo valor
+        maximum_value = max(state_values)  # como usamos epsilon-greedy, determinamos la accion que arroja maximo valor
+        state_values.remove(maximum_value)  # removemos el item asociado con la accion de maximo valor
 
-        # el valor de la matriz para la mejor acción es el máximo valor por la probabilidad de que el mismo sea elegido
-        # (que es 1-epsilon por la probabilidad de explotación más 1/4 * epsilon por probabilidad de que sea elegido al
-        # azar cuando se opta por una acción exploratoria)
+        # el valor de la matriz para la mejor accion es el maximo valor por la probabilidad de que el mismo sea elegido
+        # (que es 1-epsilon por la probabilidad de explotacion mas 1/4 * epsilon por probabilidad de que sea elegido al
+        # azar cuando se opta por una accion exploratoria)
         value_matrix[row, column] = maximum_value * (1 - epsilon + 1/4 * epsilon)
 
         for non_maximum_value in state_values:
@@ -129,7 +129,7 @@ for row, column in itertools.product(range(value_matrix.shape[0]), range(value_m
     if best_action < up_action:
         arrow_direction = '↑'
 
-    # notar que column, row están invertidos en orden en la línea de abajo porque representan a x,y del plot
+    # notar que column, row estan invertidos en orden en la linea de abajo porque representan a x,y del plot
     plt.text(column, row, arrow_direction,
              horizontalalignment="center")
 
@@ -137,6 +137,6 @@ plt.xticks([])
 plt.yticks([])
 plt.show()
 
-print('\n Matriz de valor (en números): \n\n', value_matrix)
+print('\n Matriz de valor (en numeros): \n\n', value_matrix)
 
 agent.destroy_agent()

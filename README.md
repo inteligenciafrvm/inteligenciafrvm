@@ -1,5 +1,6 @@
 # Inteligencia Artificial - Facultad Regional Villa María
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/inteligenciafrvm/inteligenciafrvm/master)
 
 Repositorio oficial de la cátedra Inteligencia Artificial, perteneciente al 5° año de la carrera Ingeniería en Sistemas de Información. La misma se dicta en la Facultad Regional Villa María, parte de la Universidad Tecnológica Nacional (Argentina).
 

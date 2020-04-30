@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
@@ -98,3 +100,42 @@ def draw_value_matrix(q):
     plt.show()
 
     print('\n Matriz de mejor acción-valor (en números): \n\n', q_value_matrix)
+
+
+def create_data(func, sample_size, std, domain=[0, 1]):
+    x = np.linspace(domain[0], domain[1], sample_size)
+    np.random.shuffle(x)
+    t = func(x) + np.random.normal(scale=std, size=x.shape)
+    return x, t
+
+
+def linear(x):
+    return 2 * x - 1
+
+
+def create_linear_data():
+    x_train, y_train = create_data(linear, 10, 0.2)
+    x_test = np.linspace(0., 1.0, 50)
+    y_test = linear(x_test)
+    return x_train, y_train, x_test, y_test
+
+
+def sinusoidal(x):
+    return np.sin(2 * np.pi * x)
+
+
+def create_sinusoidal_data():
+    x_train, y_train = create_data(sinusoidal, 10, 0.2)
+    x_test = np.linspace(0., 1.0, 50)
+    y_test = sinusoidal(x_test)
+    return x_train, y_train, x_test, y_test
+
+
+def polynomial_features(x, M):
+    if np.isscalar(x):
+        return x**np.arange(1, M+1)
+    elif (isinstance(x, (list, tuple)) or
+          (isinstance(x, (np.ndarray,)) and x.ndim == 1)):
+        return np.vstack([x_**np.arange(1, M+1) for x_ in x])
+    else:
+        raise TypeError("wrong type")

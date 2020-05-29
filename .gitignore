@@ -169,4 +169,6 @@ venv.bak/
 
 # End of https://www.gitignore.io/api/python,pycharm
 
-Unidad 5/Clase 7 \(Práctica\)/\.idea/
+Clases prácticas/data/cifar-10-batches-py/
+
+Clases prácticas/data/cifar-10-python.tar.gz

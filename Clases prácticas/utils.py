@@ -139,3 +139,9 @@ def polynomial_features(x, M):
         return np.vstack([x_**np.arange(1, M+1) for x_ in x])
     else:
         raise TypeError("wrong type")
+        
+def imshow(img):
+    img = img / 2 + 0.5     # unnormalize
+    npimg = img.numpy()
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.show()

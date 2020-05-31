@@ -145,3 +145,11 @@ def imshow(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
+
+def imshow_tensor(x, title=None):    
+    x = x.numpy().transpose((1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    x = np.clip(std * x + mean, 0, 1) 
+    plt.imshow(x)
+    plt.show()
